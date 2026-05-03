@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SchoolRoute — Bus Schedules & Carpools</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #22C55E;
+  --green-dark: #16A34A;
+  --green-dim: #166534;
+  --green-bg: rgba(34,197,94,0.12);
+  --green-border: rgba(34,197,94,0.25);
+  --bg: #0D0F12;
+  --bg2: #13161B;
+  --bg3: #1A1F27;
+  --bg4: #222832;
+  --surface: #1E2430;
+  --surface2: #252D3A;
+  --surface3: #2C3547;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #F0F4F8;
+  --text2: #8B96A8;
+  --text3: #556070;
+  --red: #EF4444;
+  --red-bg: rgba(239,68,68,0.12);
+  --yellow: #F59E0B;
+  --yellow-bg: rgba(245,158,11,0.12);
+  --blue: #3B82F6;
+  --blue-bg: rgba(59,130,246,0.12);
+  --sidebar-w: 210px;
+  --r: 10px;
+  --r-sm: 6px;
+  --r-lg: 16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* SCREENS */
+.screen{display:none;min-height:100vh;flex-direction:column}
+.screen.active{display:flex}
+.screen.with-sidebar{flex-direction:row}
+
+/* TOPNAV */
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:60px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.logo{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.1rem;color:var(--text);letter-spacing:-.3px;cursor:pointer}
+.logo span{color:var(--green)}
+.nav-links{display:flex;gap:1.75rem}
+.nav-links a{text-decoration:none;color:var(--text2);font-size:0.85rem;font-weight:500;cursor:pointer;transition:color .18s}
+.nav-links a:hover{color:var(--green)}
+.nav-actions{display:flex;gap:0.6rem}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1.1rem;border-radius:var(--r-sm);font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;border:none;transition:all .18s;text-decoration:none}
+.btn-green{background:var(--green);color:#0a1a10}
+.btn-green:hover{background:var(--green-dark);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--green);border:1.5px solid var(--green)}
+.btn-outline:hover{background:var(--green-bg)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--surface2)}
+.btn-sm{padding:.3rem .75rem;font-size:.78rem}
+.btn-lg{padding:.75rem 1.75rem;font-size:.95rem;border-radius:var(--r)}
+.btn-full{width:100%;justify-content:center}
+.btn-red{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,0.25)}
+.btn-red:hover{background:rgba(239,68,68,0.2)}
+
+/* FORMS */
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.04em}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:.65rem .9rem;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-family:'Plus Jakarta Sans',sans-serif;font-size:.875rem;background:var(--surface2);color:var(--text);outline:none;transition:border-color .18s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--green)}
+.form-group input::placeholder,.form-group textarea::placeholder{color:var(--text3)}
+.form-group select option{background:var(--bg3)}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:1.25rem .875rem;flex-shrink:0}
+.sidebar .logo{margin-bottom:1.75rem;padding:0 .4rem}
+.sidebar-nav{display:flex;flex-direction:column;gap:.15rem;flex:1}
+.nav-item{display:flex;align-items:center;gap:.65rem;padding:.6rem .75rem;border-radius:var(--r-sm);color:var(--text2);font-size:.83rem;font-weight:500;cursor:pointer;transition:all .18s;text-decoration:none}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.sidebar-footer{margin-top:auto;padding-top:1rem;border-top:1px solid var(--border)}
+.sidebar-section{font-size:.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:.5rem .75rem .3rem}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.page-header{padding:1.5rem 1.75rem 0;display:flex;align-items:flex-start;justify-content:space-between}
+.page-header h2{font-size:1.2rem;font-weight:700}
+.page-header p{color:var(--text2);font-size:.82rem;margin-top:.2rem}
+.page-body{padding:1.25rem 1.75rem}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem}
+.card-dark{background:var(--bg3)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:.2rem .55rem;border-radius:100px;font-size:.7rem;font-weight:700;letter-spacing:.02em}
+.badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-yellow{background:var(--yellow-bg);color:var(--yellow)}
+.badge-blue{background:var(--blue-bg);color:var(--blue)}
+.badge-gray{background:var(--surface3);color:var(--text2)}
+
+/* GRIDS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.flex{display:flex}.flex-center{display:flex;align-items:center}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.gap-1{gap:.5rem}.gap-2{gap:.875rem}.gap-3{gap:1.25rem}
+.mt-1{margin-top:.5rem}.mt-2{margin-top:1rem}.mt-3{margin-top:1.5rem}
+.mb-1{margin-bottom:.5rem}.mb-2{margin-bottom:1rem}
+
+/* ROUTE ROW */
+.route-row{display:flex;align-items:center;gap:.875rem;padding:.875rem 0;border-bottom:1px solid var(--border)}
+.route-row:last-child{border-bottom:none}
+.route-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.route-info{flex:1;min-width:0}
+.route-name{font-size:.875rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.route-sub{font-size:.75rem;color:var(--text2);margin-top:.1rem}
+
+/* MAP PLACEHOLDER */
+.map-area{background:var(--bg3);border-radius:var(--r);border:1px solid var(--border);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.map-grid{position:absolute;inset:0;opacity:.06;background-image:linear-gradient(var(--green) 1px,transparent 1px),linear-gradient(90deg,var(--green) 1px,transparent 1px);background-size:32px 32px}
+.map-dot{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+.map-dot::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(34,197,94,0.35);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:0}}
+.map-line{position:absolute;height:2px;background:linear-gradient(90deg,var(--green),transparent);transform-origin:left center}
+
+/* TOGGLE */
+.toggle{width:40px;height:22px;background:var(--surface3);border-radius:100px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle.on::after{transform:translateX(18px)}
+
+/* TIMELINE */
+.timeline-item{display:flex;gap:.875rem;padding-bottom:1.25rem;position:relative}
+.timeline-item::before{content:'';position:absolute;left:11px;top:24px;bottom:0;width:1px;background:var(--border2)}
+.timeline-item:last-child::before{display:none}
+.tl-dot{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;margin-top:2px}
+.tl-dot-green{background:var(--green-bg);color:var(--green);border:2px solid var(--green)}
+.tl-dot-gray{background:var(--surface3);color:var(--text3);border:2px solid var(--border2)}
+.tl-dot-school{background:var(--green);color:#0a1a10}
+.tl-content{flex:1}
+.tl-label{font-size:.82rem;font-weight:600}
+.tl-sub{font-size:.75rem;color:var(--text2);margin-top:.1rem}
+.tl-time{font-size:.75rem;color:var(--green);font-weight:600;margin-top:.2rem}
+
+/* STAT MINI */
+.stat-mini{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem}
+.stat-mini .lbl{font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.stat-mini .val{font-size:1.4rem;font-weight:800;margin-top:.2rem;color:var(--text)}
+.stat-mini .sub{font-size:.72rem;color:var(--text2);margin-top:.15rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.75rem;right:1.75rem;background:var(--surface2);color:var(--text);border:1px solid var(--green-border);padding:.7rem 1.1rem;border-radius:var(--r-sm);font-size:.83rem;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;max-width:300px}
+.toast.show{opacity:1}
+
+/* AUTH */
+.auth-wrap{flex:1;display:flex;background:var(--bg)}
+.auth-left{flex:1;background:var(--bg2);display:flex;flex-direction:column;justify-content:center;padding:4rem;position:relative;overflow:hidden;border-right:1px solid var(--border)}
+.auth-left::after{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(34,197,94,0.08) 0%,transparent 70%);bottom:-150px;right:-150px;pointer-events:none}
+.auth-right{flex:1;display:flex;align-items:center;justify-content:center;padding:3rem}
+.auth-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-lg);padding:2.25rem;width:100%;max-width:400px}
+.auth-box h2{font-size:1.3rem;font-weight:800;margin-bottom:.3rem}
+.auth-sub{color:var(--text2);font-size:.83rem;margin-bottom:1.5rem}
+.auth-tabs{display:flex;background:var(--bg3);border-radius:var(--r-sm);padding:.25rem;margin-bottom:1.5rem;gap:.25rem}
+.auth-tab{flex:1;text-align:center;padding:.5rem;border-radius:var(--r-sm);font-size:.83rem;font-weight:600;cursor:pointer;color:var(--text2);transition:all .18s}
+.auth-tab.active{background:var(--surface3);color:var(--text)}
+
+/* MEMBER PILL */
+.member-pill{display:flex;align-items:center;gap:.5rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:.35rem .75rem .35rem .35rem;font-size:.78rem;font-weight:500}
+.member-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+  SCREEN 1 — LANDING
+══════════════════════════════════════════════ -->
+<div id="landing" class="screen active">
+  <nav class="topnav">
+    <div class="logo">School<span>Route</span></div>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Plans</a>
+      <a onclick="showScreen('dashboard')">Dashboard</a>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-ghost btn-sm" onclick="showScreen('auth')">Sign In</button>
+      <button class="btn btn-green btn-sm" onclick="showScreen('auth')">Get Started</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div style="display:flex;align-items:center;gap:3rem;padding:5rem 4rem;max-width:1200px;margin:0 auto">
+    <div style="flex:1">
+      <div class="badge badge-green" style="margin-bottom:1rem">🚌 For parents & students</div>
+      <h1 style="font-size:3rem;font-weight:800;line-height:1.1;letter-spacing:-1.5px">Bus schedules &amp; carpools<br>for <span style="color:var(--green)">parents</span> and<br><span style="color:var(--green)">students</span>.</h1>
+      <p style="color:var(--text2);font-size:1rem;margin:1.25rem 0 2rem;line-height:1.7;max-width:460px">Never miss a pickup again. Track school bus routes in real time, coordinate carpools with trusted parents, and get instant alerts when schedules change.</p>
+      <div style="display:flex;gap:.875rem;flex-wrap:wrap">
+        <button class="btn btn-green btn-lg" onclick="showScreen('auth')">Create account →</button>
+        <button class="btn btn-ghost btn-lg" onclick="showScreen('auth')">Sign in</button>
+      </div>
+      <div style="display:flex;gap:2rem;margin-top:2.5rem;padding-top:2rem;border-top:1px solid var(--border)">
+        <div><div style="font-size:1.4rem;font-weight:800;color:var(--green)">8,000+</div><div style="font-size:.78rem;color:var(--text3)">Active families</div></div>
+        <div><div style="font-size:1.4rem;font-weight:800;color:var(--green)">340+</div><div style="font-size:.78rem;color:var(--text3)">Schools covered</div></div>
+        <div><div style="font-size:1.4rem;font-weight:800;color:var(--green)">99.2%</div><div style="font-size:.78rem;color:var(--text3)">On-time accuracy</div></div>
+        <div><div style="font-size:1.4rem;font-weight:800;color:var(--green)">Free</div><div style="font-size:.78rem;color:var(--text3)">Core features</div></div>
+      </div>
+    </div>
+    <!-- HERO CARD -->
+    <div style="flex:0 0 340px">
+      <div class="card" style="border:1px solid var(--green-border);background:var(--bg2)">
+        <div style="font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.875rem">Live Bus Tracking</div>
+        <div style="background:var(--bg3);border-radius:var(--r-sm);height:140px;position:relative;overflow:hidden;margin-bottom:.875rem">
+          <div class="map-grid"></div>
+          <div class="map-dot" style="top:40%;left:35%"></div>
+          <div class="map-dot" style="top:65%;left:68%;background:var(--blue);box-shadow:0 0 12px var(--blue)"></div>
+          <div style="position:absolute;bottom:.6rem;left:.6rem;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:.35rem .6rem;font-size:.72rem;color:var(--green);font-weight:600">🚌 Bus 12 — 3 stops away</div>
+        </div>
+        <div class="route-row" style="padding:.6rem 0"><div class="route-icon" style="background:var(--green-bg)">🚌</div><div class="route-info"><div class="route-name">Route 12 — Morning</div><div class="route-sub">ETA: 7:42 AM · 3 stops away</div></div><span class="badge badge-green">On time</span></div>
+        <div class="route-row" style="padding:.6rem 0;border-bottom:none"><div class="route-icon" style="background:var(--blue-bg)">🚗</div><div class="route-info"><div class="route-name">Carpool — Johnson Group</div><div class="route-sub">Tomorrow 8:00 AM · Sarah's turn</div></div><span class="badge badge-blue">Carpool</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div id="features" style="background:var(--bg2);padding:4rem;border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div style="max-width:1100px;margin:0 auto">
+      <h2 style="font-size:1.75rem;font-weight:800;text-align:center;margin-bottom:.5rem">Everything You Need</h2>
+      <p style="text-align:center;color:var(--text2);margin-bottom:3rem;font-size:.9rem">Built specifically for school commutes</p>
+      <div class="grid-3" style="gap:1.5rem">
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem">
+          <div style="font-size:1.75rem;margin-bottom:.75rem">🗺️</div>
+          <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.4rem">Live Bus Tracking</h3>
+          <p style="font-size:.8rem;color:var(--text2);line-height:1.6">Real-time GPS updates every 30 seconds. Know exactly when to head to the stop.</p>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem">
+          <div style="font-size:1.75rem;margin-bottom:.75rem">🚗</div>
+          <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.4rem">Carpool Coordination</h3>
+          <p style="font-size:.8rem;color:var(--text2);line-height:1.6">Create private carpool groups with verified parents. Rotate schedules automatically.</p>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem">
+          <div style="font-size:1.75rem;margin-bottom:.75rem">🔔</div>
+          <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.4rem">Smart Alerts</h3>
+          <p style="font-size:.8rem;color:var(--text2);line-height:1.6">Instant push notifications for delays, cancellations, and schedule changes.</p>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem">
+          <div style="font-size:1.75rem;margin-bottom:.75rem">📅</div>
+          <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.4rem">Schedule Management</h3>
+          <p style="font-size:.8rem;color:var(--text2);line-height:1.6">Manage multiple children, routes, and school calendars in one place.</p>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem">
+          <div style="font-size:1.75rem;margin-bottom:.75rem">🛡️</div>
+          <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.4rem">Verified Parents Only</h3>
+          <p style="font-size:.8rem;color:var(--text2);line-height:1.6">All carpool members are school-verified. Your children's safety is our priority.</p>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--green-border);border-radius:var(--r);padding:1.5rem;background:var(--green-bg)">
+          <div style="font-size:1.75rem;margin-bottom:.75rem">✨</div>
+          <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.4rem;color:var(--green)">Ready to get started?</h3>
+          <p style="font-size:.8rem;color:var(--text2);line-height:1.6;margin-bottom:1rem">Join 8,000 families already using SchoolRoute.</p>
+          <button class="btn btn-green btn-sm btn-full" onclick="showScreen('auth')">Create Account →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div id="how" style="padding:4rem;max-width:900px;margin:0 auto">
+    <h2 style="font-size:1.75rem;font-weight:800;text-align:center;margin-bottom:.5rem">Ready to get started?</h2>
+    <p style="text-align:center;color:var(--text2);margin-bottom:3rem">Set up in 3 minutes.</p>
+    <div style="display:flex;justify-content:center;gap:2rem;flex-wrap:wrap">
+      <div style="text-align:center;flex:1;min-width:160px"><div style="width:48px;height:48px;border-radius:50%;background:var(--green-bg);border:2px solid var(--green-border);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--green);font-size:1.1rem;margin:0 auto .875rem">1</div><h4 style="font-weight:700;font-size:.9rem;margin-bottom:.35rem">Create account</h4><p style="font-size:.78rem;color:var(--text2)">Sign up with your school email</p></div>
+      <div style="width:40px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:1.2rem;margin-top:0">→</div>
+      <div style="text-align:center;flex:1;min-width:160px"><div style="width:48px;height:48px;border-radius:50%;background:var(--green-bg);border:2px solid var(--green-border);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--green);font-size:1.1rem;margin:0 auto .875rem">2</div><h4 style="font-weight:700;font-size:.9rem;margin-bottom:.35rem">Find your route</h4><p style="font-size:.78rem;color:var(--text2)">Search by school or address</p></div>
+      <div style="width:40px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:1.2rem">→</div>
+      <div style="text-align:center;flex:1;min-width:160px"><div style="width:48px;height:48px;border-radius:50%;background:var(--green-bg);border:2px solid var(--green-border);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--green);font-size:1.1rem;margin:0 auto .875rem">3</div><h4 style="font-weight:700;font-size:.9rem;margin-bottom:.35rem">Track & carpool</h4><p style="font-size:.78rem;color:var(--text2)">Live updates & group coordination</p></div>
+    </div>
+    <div style="text-align:center;margin-top:3rem">
+      <button class="btn btn-green btn-lg" onclick="showScreen('auth')">Create account →</button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="background:var(--bg2);border-top:1px solid var(--border);padding:1.5rem 4rem;display:flex;align-items:center;justify-content:space-between">
+    <div class="logo">School<span>Route</span></div>
+    <div style="color:var(--text3);font-size:.78rem">© 2024 SchoolRoute Inc. · <a href="#" style="color:var(--text2)">Privacy</a> · <a href="#" style="color:var(--text2)">Terms</a> · <a href="#" style="color:var(--text2)">FAQ</a></div>
+    <div style="color:var(--text3);font-size:.78rem">Made with 💚 for school families</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+  SCREEN 2 — SIGN IN / SIGN UP
+══════════════════════════════════════════════ -->
+<div id="auth" class="screen">
+  <nav class="topnav">
+    <div class="logo" onclick="showScreen('landing')" style="cursor:pointer">School<span>Route</span></div>
+    <div></div>
+    <div></div>
+  </nav>
+  <div class="auth-wrap">
+    <div class="auth-left">
+      <div style="position:relative;z-index:1">
+        <div class="logo" style="font-size:1.25rem;margin-bottom:2rem">School<span>Route</span></div>
+        <h2 style="font-size:2rem;font-weight:800;line-height:1.2;margin-bottom:1rem">Safe commutes,<br>every morning.</h2>
+        <p style="color:var(--text2);font-size:.875rem;line-height:1.7;margin-bottom:2rem">Join thousands of families who track school buses and coordinate carpools with SchoolRoute.</p>
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+          <div style="display:flex;align-items:center;gap:.75rem;font-size:.83rem;color:var(--text2)"><span style="color:var(--green)">✓</span> Real-time bus GPS tracking</div>
+          <div style="display:flex;align-items:center;gap:.75rem;font-size:.83rem;color:var(--text2)"><span style="color:var(--green)">✓</span> Private, verified carpool groups</div>
+          <div style="display:flex;align-items:center;gap:.75rem;font-size:.83rem;color:var(--text2)"><span style="color:var(--green)">✓</span> Instant delay & cancellation alerts</div>
+          <div style="display:flex;align-items:center;gap:.75rem;font-size:.83rem;color:var(--text2)"><span style="color:var(--green)">✓</span> Free for all families</div>
+        </div>
+      </div>
+    </div>
+    <div class="auth-right">
+      <div class="auth-box">
+        <div class="auth-tabs">
+          <div class="auth-tab active" id="tab-signin" onclick="switchTab('signin')">Sign In</div>
+          <div class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create Account</div>
+        </div>
+
+        <!-- SIGN IN FORM -->
+        <div id="form-signin">
+          <h2>Welcome back.</h2>
+          <p class="auth-sub">Sign in to your SchoolRoute account</p>
+          <div class="form-group"><label>Email</label><input type="email" value="parent@school.edu"></div>
+          <div class="form-group"><label>Password</label><input type="password" value="••••••••"></div>
+          <div style="text-align:right;margin-bottom:1.25rem"><a href="#" style="font-size:.78rem;color:var(--green)">Forgot password?</a></div>
+          <button class="btn btn-green btn-full btn-lg" onclick="doLogin()">Sign In</button>
+          <div style="text-align:center;margin-top:1.25rem;color:var(--border2);font-size:.78rem">— or —</div>
+          <button class="btn btn-ghost btn-full" style="margin-top:.75rem" onclick="doLogin()">🔵 Continue with Google</button>
+        </div>
+
+        <!-- SIGN UP FORM -->
+        <div id="form-signup" style="display:none">
+          <h2>Create account</h2>
+          <p class="auth-sub">Join SchoolRoute for free today</p>
+          <div class="grid-2" style="gap:.75rem">
+            <div class="form-group"><label>First Name</label><input type="text" placeholder="Jordan" id="su-first"></div>
+            <div class="form-group"><label>Last Name</label><input type="text" placeholder="Parker" id="su-last"></div>
+          </div>
+          <div class="form-group"><label>Email</label><input type="email" placeholder="parent@school.edu" id="su-email"></div>
+          <div class="form-group"><label>Password</label><input type="password" placeholder="Create a password"></div>
+          <div class="form-group"><label>I am a</label>
+            <select><option>Parent / Guardian</option><option>Student (13+)</option><option>School Administrator</option></select>
+          </div>
+          <div class="form-group"><label>School</label><input type="text" placeholder="Search your school..." id="su-school"></div>
+          <button class="btn btn-green btn-full btn-lg" onclick="doSignup()">Create Account →</button>
+          <div style="text-align:center;margin-top:1rem;color:var(--border2);font-size:.78rem">— or —</div>
+          <button class="btn btn-ghost btn-full" style="margin-top:.75rem" onclick="doSignup()">🔵 Continue with Google</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+  SCREEN 3 — DASHBOARD
+══════════════════════════════════════════════ -->
+<div id="dashboard" class="screen with-sidebar">
+  <aside class="sidebar">
+    <div class="logo">School<span>Route</span></div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Main</div>
+      <a class="nav-item active" onclick="showScreen('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
+      </a>
+      <a class="nav-item" onclick="showScreen('bus-route')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 14h4M7 12v5M17 12v5"/></svg>Bus Routes
+      </a>
+      <a class="nav-item" onclick="showScreen('carpool')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Carpools
+      </a>
+      <div class="sidebar-section" style="margin-top:.5rem">Manage</div>
+      <a class="nav-item" onclick="showScreen('group-details')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Group Details
+      </a>
+      <a class="nav-item" onclick="showScreen('create-group')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Create Group
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="nav-item" onclick="showScreen('profile-alerts')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="sidebar-name">Jordan Parker</span>
+      </a>
+      <a class="nav-item" onclick="showScreen('landing')" style="color:var(--text3)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Log Out
+      </a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="page-header">
+      <div><h2 id="dash-greeting">Good morning, Jordan 👋</h2><p>Monday, May 6 · School day</p></div>
+      <div style="display:flex;gap:.6rem">
+        <button class="btn btn-ghost btn-sm" onclick="showScreen('profile-alerts')">🔔 Alerts</button>
+        <button class="btn btn-green btn-sm" onclick="showScreen('create-group')">+ New Group</button>
+      </div>
+    </div>
+    <div class="page-body">
+
+      <!-- STATUS BANNER -->
+      <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r);padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:.875rem">
+        <span style="font-size:1.25rem">🚌</span>
+        <div style="flex:1"><div style="font-weight:700;font-size:.875rem;color:var(--green)">Bus 12 is on time — arriving at your stop in ~8 minutes</div><div style="font-size:.75rem;color:var(--text2);margin-top:.15rem">Elm Street Stop · ETA 7:42 AM</div></div>
+        <button class="btn btn-outline btn-sm" onclick="showScreen('bus-route')">Track Live →</button>
+      </div>
+
+      <div class="grid-2" style="gap:1.25rem;margin-bottom:1.25rem">
+        <!-- MAP -->
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="map-area" style="height:220px">
+            <div class="map-grid"></div>
+            <div class="map-dot" style="top:38%;left:30%"></div>
+            <div class="map-dot" style="top:60%;left:65%;background:var(--yellow);box-shadow:0 0 10px var(--yellow)"></div>
+            <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,var(--bg3));height:60px"></div>
+            <div style="position:absolute;bottom:.875rem;left:.875rem;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:.4rem .75rem;font-size:.75rem;font-weight:600">
+              <span style="color:var(--green)">🟢</span> Bus 12 — Moving
+            </div>
+            <div style="position:absolute;bottom:.875rem;right:.875rem;background:var(--yellow-bg);border:1px solid rgba(245,158,11,0.3);border-radius:var(--r-sm);padding:.4rem .75rem;font-size:.75rem;font-weight:600;color:var(--yellow)">
+              🏫 School
+            </div>
+          </div>
+          <div style="padding:.875rem;border-top:1px solid var(--border)">
+            <div style="font-size:.78rem;font-weight:600;color:var(--text2)">Live map · <span style="color:var(--green)">2 active routes nearby</span></div>
+          </div>
+        </div>
+
+        <!-- TODAY'S SCHEDULE -->
+        <div class="card">
+          <div class="flex-between mb-2"><h3 style="font-size:.875rem;font-weight:700">Today's Schedule</h3><span class="badge badge-green">Monday</span></div>
+          <div class="timeline-item">
+            <div class="tl-dot tl-dot-green">✓</div>
+            <div class="tl-content"><div class="tl-label">Elm Street Stop</div><div class="tl-sub">Morning pickup</div><div class="tl-time">7:42 AM · 8 min away</div></div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot tl-dot-school">🏫</div>
+            <div class="tl-content"><div class="tl-label">Lincoln Middle School</div><div class="tl-sub">School arrival</div><div class="tl-time">8:05 AM estimated</div></div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-dot tl-dot-gray">P</div>
+            <div class="tl-content"><div class="tl-label">Carpool — Johnson Group</div><div class="tl-sub">Afternoon pickup · Sarah's turn</div><div class="tl-time">3:30 PM</div></div>
+          </div>
+          <div class="timeline-item" style="padding-bottom:0">
+            <div class="tl-dot tl-dot-gray">🏠</div>
+            <div class="tl-content"><div class="tl-label">Home drop-off</div><div class="tl-sub">Via carpool</div><div class="tl-time">~3:55 PM</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS + ROUTES -->
+      <div class="grid-2" style="gap:1.25rem">
+        <div class="card">
+          <div class="flex-between mb-2"><h3 style="font-size:.875rem;font-weight:700">My Routes</h3><button class="btn btn-ghost btn-sm" onclick="showScreen('bus-route')">View all →</button></div>
+          <div class="route-row"><div class="route-icon" style="background:var(--green-bg)">🚌</div><div class="route-info"><div class="route-name">Route 12 — Morning</div><div class="route-sub">Elm St → Lincoln Middle</div></div><span class="badge badge-green">Active</span></div>
+          <div class="route-row"><div class="route-icon" style="background:var(--blue-bg)">🚌</div><div class="route-info"><div class="route-name">Route 12 — Afternoon</div><div class="route-sub">Lincoln Middle → Elm St</div></div><span class="badge badge-blue">3:25 PM</span></div>
+          <div class="route-row" style="border-bottom:none"><div class="route-icon" style="background:var(--surface3)">🚗</div><div class="route-info"><div class="route-name">Johnson Carpool</div><div class="route-sub">5 families · Mon/Wed/Fri</div></div><span class="badge badge-gray">Carpool</span></div>
+        </div>
+        <div class="card">
+          <div class="flex-between mb-2"><h3 style="font-size:.875rem;font-weight:700">Quick Stats</h3><span style="font-size:.75rem;color:var(--text3)">This month</span></div>
+          <div class="grid-2" style="gap:.75rem">
+            <div class="stat-mini"><div class="lbl">Bus Rides</div><div class="val" style="color:var(--green)">18</div><div class="sub">this month</div></div>
+            <div class="stat-mini"><div class="lbl">On Time</div><div class="val">94%</div><div class="sub">↑ vs last month</div></div>
+            <div class="stat-mini"><div class="lbl">Carpool Days</div><div class="val">8</div><div class="sub">Mon/Wed/Fri</div></div>
+            <div class="stat-mini"><div class="lbl">Avg Wait</div><div class="val">3.2<span style="font-size:.875rem;font-weight:400">min</span></div><div class="sub">at stop</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════
+  SCREEN 4 — BUS ROUTE
+══════════════════════════════════════════════ -->
+<div id="bus-route" class="screen with-sidebar">
+  <aside class="sidebar">
+    <div class="logo">School<span>Route</span></div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Main</div>
+      <a class="nav-item" onclick="showScreen('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="nav-item active" onclick="showScreen('bus-route')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 14h4M7 12v5M17 12v5"/></svg>Bus Routes</a>
+      <a class="nav-item" onclick="showScreen('carpool')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Carpools</a>
+      <div class="sidebar-section" style="margin-top:.5rem">Manage</div>
+      <a class="nav-item" onclick="showScreen('group-details')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Group Details</a>
+      <a class="nav-item" onclick="showScreen('create-group')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Create Group</a>
+    </nav>
+    <div class="sidebar-footer"><a class="nav-item" onclick="showScreen('profile-alerts')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a></div>
+  </aside>
+  <main class="main">
+    <div class="page-header">
+      <div><h2>Bus Routes</h2><p>Real-time tracking for your routes</p></div>
+      <div style="display:flex;gap:.5rem">
+        <span class="badge badge-green" style="padding:.4rem .8rem">🟢 Live</span>
+        <button class="btn btn-ghost btn-sm">Route 12 ▾</button>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="grid-2" style="gap:1.25rem;margin-bottom:1.25rem">
+        <!-- LIVE MAP -->
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="map-area" style="height:300px">
+            <div class="map-grid"></div>
+            <!-- Route line -->
+            <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 400 300">
+              <polyline points="50,250 90,210 130,190 175,160 220,135 265,110 310,85 355,60" fill="none" stroke="rgba(34,197,94,0.4)" stroke-width="3" stroke-dasharray="6,4"/>
+            </svg>
+            <!-- Stops -->
+            <div style="position:absolute;top:82%;left:12%;text-align:center"><div style="width:10px;height:10px;border-radius:50%;background:var(--text2);margin:0 auto 2px"></div><div style="font-size:.6rem;color:var(--text3);white-space:nowrap">Oak Ave</div></div>
+            <div style="position:absolute;top:70%;left:22%;text-align:center"><div style="width:10px;height:10px;border-radius:50%;background:var(--text2);margin:0 auto 2px"></div><div style="font-size:.6rem;color:var(--text3);white-space:nowrap">Pine St</div></div>
+            <div style="position:absolute;top:63%;left:33%;text-align:center"><div style="width:10px;height:10px;border-radius:50%;background:var(--text2);margin:0 auto 2px"></div><div style="font-size:.6rem;color:var(--text3)">Elm St</div></div>
+            <!-- BUS -->
+            <div class="map-dot" style="top:52%;left:44%"></div>
+            <div style="position:absolute;top:44%;left:44%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--green-border);border-radius:var(--r-sm);padding:.25rem .5rem;font-size:.65rem;color:var(--green);font-weight:700;white-space:nowrap">🚌 Bus 12</div>
+            <!-- SCHOOL -->
+            <div class="map-dot" style="top:20%;left:88%;background:var(--yellow);box-shadow:0 0 10px var(--yellow)"></div>
+            <div style="position:absolute;top:12%;right:.5rem;background:var(--yellow-bg);border:1px solid rgba(245,158,11,0.3);border-radius:var(--r-sm);padding:.25rem .5rem;font-size:.65rem;color:var(--yellow);font-weight:700">🏫 School</div>
+          </div>
+          <div style="padding:.875rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:.78rem;color:var(--green);font-weight:600">🟢 Bus moving · updated 12s ago</div>
+            <button class="btn btn-ghost btn-sm" onclick="showToast('Map refreshed!')">Refresh</button>
+          </div>
+        </div>
+
+        <!-- STOPS -->
+        <div class="card">
+          <div class="flex-between mb-2"><h3 style="font-size:.875rem;font-weight:700">Route 12 — Morning</h3><span class="badge badge-green">On Schedule</span></div>
+          <div style="display:flex;flex-direction:column;gap:0">
+            <div class="timeline-item">
+              <div class="tl-dot" style="background:var(--surface3);color:var(--text3);border:2px solid var(--border2);font-size:.6rem">✓</div>
+              <div class="tl-content"><div class="tl-label" style="color:var(--text2)">Oak Avenue Stop</div><div class="tl-sub">Departed</div><div class="tl-time" style="color:var(--text3)">7:18 AM ✓</div></div>
+            </div>
+            <div class="timeline-item">
+              <div class="tl-dot" style="background:var(--surface3);color:var(--text3);border:2px solid var(--border2);font-size:.6rem">✓</div>
+              <div class="tl-content"><div class="tl-label" style="color:var(--text2)">Pine Street Stop</div><div class="tl-sub">Departed</div><div class="tl-time" style="color:var(--text3)">7:26 AM ✓</div></div>
+            </div>
+            <div class="timeline-item">
+              <div class="tl-dot tl-dot-green" style="font-size:.55rem">NOW</div>
+              <div class="tl-content"><div class="tl-label">Elm Street Stop</div><div class="tl-sub" style="color:var(--green)">Your stop · Bus arriving</div><div class="tl-time">7:42 AM · ~8 min</div></div>
+            </div>
+            <div class="timeline-item">
+              <div class="tl-dot tl-dot-gray" style="font-size:.6rem">4</div>
+              <div class="tl-content"><div class="tl-label">Maple Drive Stop</div><div class="tl-sub">Next stop</div><div class="tl-time" style="color:var(--text3)">7:49 AM</div></div>
+            </div>
+            <div class="timeline-item" style="padding-bottom:0">
+              <div class="tl-dot tl-dot-school">🏫</div>
+              <div class="tl-content"><div class="tl-label">Lincoln Middle School</div><div class="tl-sub">Final destination</div><div class="tl-time" style="color:var(--text3)">8:05 AM</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROUTE CARDS -->
+      <div class="card">
+        <div class="flex-between mb-2"><h3 style="font-size:.875rem;font-weight:700">My Subscribed Routes</h3><span style="font-size:.78rem;color:var(--text2)">2 routes</span></div>
+        <div class="grid-2" style="gap:1rem">
+          <div style="background:var(--bg3);border:1px solid var(--green-border);border-radius:var(--r-sm);padding:1rem">
+            <div class="flex-between mb-1"><span style="font-weight:700;font-size:.875rem">🚌 Route 12 — AM</span><span class="badge badge-green">Live</span></div>
+            <div style="font-size:.78rem;color:var(--text2);margin-bottom:.6rem">Elm St → Lincoln Middle · 5 stops</div>
+            <div style="font-size:.78rem;color:var(--green);font-weight:600">Next pickup: 7:42 AM</div>
+          </div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem">
+            <div class="flex-between mb-1"><span style="font-weight:700;font-size:.875rem">🚌 Route 12 — PM</span><span class="badge badge-gray">3:25 PM</span></div>
+            <div style="font-size:.78rem;color:var(--text2);margin-bottom:.6rem">Lincoln Middle → Elm St · 5 stops</div>
+            <div style="font-size:.78rem;color:var(--text3);font-weight:600">Starts in ~7 hours</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════
+  SCREEN 5 — CARPOOL
+══════════════════════════════════════════════ -->
+<div id="carpool" class="screen with-sidebar">
+  <aside class="sidebar">
+    <div class="logo">School<span>Route</span></div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Main</div>
+      <a class="nav-item" onclick="showScreen('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="nav-item" onclick="showScreen('bus-route')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 14h4M7 12v5M17 12v5"/></svg>Bus Routes</a>
+      <a class="nav-item active" onclick="showScreen('carpool')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Carpools</a>
+      <div class="sidebar-section" style="margin-top:.5rem">Manage</div>
+      <a class="nav-item" onclick="showScreen('group-details')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Group Details</a>
+      <a class="nav-item" onclick="showScreen('create-group')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Create Group</a>
+    </nav>
+    <div class="sidebar-footer"><a class="nav-item" onclick="showScreen('profile-alerts')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a></div>
+  </aside>
+  <main class="main">
+    <div class="page-header"><div><h2>Carpool Groups</h2><p>Coordinate rides with trusted families</p></div><button class="btn btn-green btn-sm" onclick="showScreen('create-group')">+ New Group</button></div>
+    <div class="page-body">
+      <div class="grid-2" style="gap:1.25rem">
+        <!-- YOUR GROUPS -->
+        <div>
+          <div class="card" style="margin-bottom:1.1rem">
+            <div class="flex-between mb-2"><h3 style="font-size:.875rem;font-weight:700">Johnson Carpool Group</h3><span class="badge badge-green">Active</span></div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+              <div class="member-pill"><div class="member-av" style="background:var(--green-bg);color:var(--green)">JP</div>Jordan (you)</div>
+              <div class="member-pill"><div class="member-av" style="background:var(--blue-bg);color:var(--blue)">SM</div>Sarah M.</div>
+              <div class="member-pill"><div class="member-av" style="background:var(--yellow-bg);color:var(--yellow)">TK</div>Tom K.</div>
+              <div class="member-pill"><div class="member-av" style="background:var(--red-bg);color:var(--red)">LR</div>Lisa R.</div>
+            </div>
+            <div style="background:var(--bg3);border-radius:var(--r-sm);padding:.875rem;margin-bottom:.875rem">
+              <div style="font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem">This Week's Schedule</div>
+              <div style="display:flex;flex-direction:column;gap:.4rem">
+                <div class="flex-between" style="font-size:.8rem"><span>Monday</span><span style="color:var(--green);font-weight:600">Sarah M. — driving</span></div>
+                <div class="flex-between" style="font-size:.8rem"><span>Tuesday</span><span style="color:var(--text2)">Bus day</span></div>
+                <div class="flex-between" style="font-size:.8rem"><span>Wednesday</span><span style="color:var(--yellow);font-weight:600">Jordan (you) — driving</span></div>
+                <div class="flex-between" style="font-size:.8rem"><span>Thursday</span><span style="color:var(--text2)">Bus day</span></div>
+                <div class="flex-between" style="font-size:.8rem"><span>Friday</span><span style="color:var(--blue);font-weight:600">Tom K. — driving</span></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:.5rem">
+              <button class="btn btn-outline btn-sm" style="flex:1" onclick="showScreen('group-details')">View Details</button>
+              <button class="btn btn-ghost btn-sm" onclick="showToast('Message sent to group!')">Message</button>
+            </div>
+          </div>
+
+          <!-- DISCOVER -->
+          <div class="card">
+            <h3 style="font-size:.875rem;font-weight:700;margin-bottom:.875rem">Nearby Groups</h3>
+            <div class="route-row"><div class="route-icon" style="background:var(--blue-bg)">🚗</div><div class="route-info"><div class="route-name">Maple Ave Carpool</div><div class="route-sub">3 families · Lincoln Middle</div></div><button class="btn btn-outline btn-sm" onclick="showToast('Request sent!')">Request</button></div>
+            <div class="route-row" style="border-bottom:none"><div class="route-icon" style="background:var(--yellow-bg)">🚗</div><div class="route-info"><div class="route-name">Parkside Morning Group</div><div class="route-sub">4 families · 1 spot open</div></div><button class="btn btn-outline btn-sm" onclick="showToast('Request sent!')">Request</button></div>
+          </div>
+        </div>
+
+        <!-- NEXT DRIVE -->
+        <div>
+          <div class="card" style="margin-bottom:1.1rem;border:1px solid var(--yellow-bg)">
+            <div style="font-size:.72rem;font-weight:700;color:var(--yellow);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem">⚠ Your turn to drive</div>
+            <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.3rem">Wednesday, May 8</h3>
+            <p style="font-size:.8rem;color:var(--text2);margin-bottom:1rem">Pick up 3 kids · Depart 7:30 AM</p>
+            <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem">
+              <div style="font-size:.8rem;display:flex;align-items:center;gap:.5rem"><span>📍</span>42 Pine Street (Sarah M.)</div>
+              <div style="font-size:.8rem;display:flex;align-items:center;gap:.5rem"><span>📍</span>18 Oak Drive (Tom K.)</div>
+              <div style="font-size:.8rem;display:flex;align-items:center;gap:.5rem"><span>🏫</span>Lincoln Middle School</div>
+            </div>
+            <div style="display:flex;gap:.5rem">
+              <button class="btn btn-green btn-sm" style="flex:1" onclick="showToast('Drive confirmed!')">Confirm Drive</button>
+              <button class="btn btn-ghost btn-sm" onclick="showToast('Swap requested!')">Swap Day</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3 style="font-size:.875rem;font-weight:700;margin-bottom:.875rem">Carpool Stats</h3>
+            <div class="grid-2" style="gap:.75rem">
+              <div class="stat-mini"><div class="lbl">Times Driven</div><div class="val" style="color:var(--green)">6</div><div class="sub">this month</div></div>
+              <div class="stat-mini"><div class="lbl">Kids in group</div><div class="val">4</div><div class="sub">+ yours</div></div>
+              <div class="stat-mini"><div class="lbl">Miles saved</div><div class="val">42</div><div class="sub">sharing rides</div></div>
+              <div class="stat-mini"><div class="lbl">Reliability</div><div class="val">100%</div><div class="sub">no cancels</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════
+  SCREEN 6 — PROFILE & ALERTS
+══════════════════════════════════════════════ -->
+<div id="profile-alerts" class="screen with-sidebar">
+  <aside class="sidebar">
+    <div class="logo">School<span>Route</span></div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Main</div>
+      <a class="nav-item" onclick="showScreen('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="nav-item" onclick="showScreen('bus-route')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 14h4M7 12v5M17 12v5"/></svg>Bus Routes</a>
+      <a class="nav-item" onclick="showScreen('carpool')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Carpools</a>
+      <div class="sidebar-section" style="margin-top:.5rem">Manage</div>
+      <a class="nav-item" onclick="showScreen('group-details')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Group Details</a>
+      <a class="nav-item" onclick="showScreen('create-group')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Create Group</a>
+    </nav>
+    <div class="sidebar-footer"><a class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a></div>
+  </aside>
+  <main class="main">
+    <div class="page-header"><h2>Profile & Alerts</h2></div>
+    <div class="page-body">
+      <div class="grid-2" style="gap:1.25rem">
+        <!-- PROFILE -->
+        <div>
+          <div class="card" style="margin-bottom:1.1rem">
+            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem">
+              <div style="width:60px;height:60px;border-radius:50%;background:var(--green-bg);border:2px solid var(--green-border);display:flex;align-items:center;justify-content:center;font-size:1.25rem;font-weight:800;color:var(--green)" id="profile-av">JP</div>
+              <div>
+                <h3 style="font-size:1rem;font-weight:800" id="profile-name-disp">Jordan Parker</h3>
+                <div style="font-size:.78rem;color:var(--text3)">Parent · Lincoln Middle School</div>
+                <span class="badge badge-green" style="margin-top:.3rem">Verified Parent</span>
+              </div>
+            </div>
+            <div class="form-group"><label>Full Name</label><input type="text" value="Jordan Parker" oninput="updateName(this.value)"></div>
+            <div class="form-group"><label>Email</label><input type="email" value="jordan@school.edu"></div>
+            <div class="form-group"><label>Phone (for urgent alerts)</label><input type="tel" value="+1 (555) 012-3456"></div>
+            <div class="form-group"><label>Child's Name</label><input type="text" value="Alex Parker"></div>
+            <div class="form-group"><label>Child's School</label><input type="text" value="Lincoln Middle School"></div>
+            <button class="btn btn-green btn-sm" onclick="showToast('Profile saved!')">Save Changes</button>
+          </div>
+
+          <div class="card">
+            <h3 style="font-size:.875rem;font-weight:700;margin-bottom:1rem">Bus Notifications</h3>
+            <div style="display:flex;flex-direction:column">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:500;font-size:.83rem">Bus arriving at your stop</div><div style="font-size:.72rem;color:var(--text3)">Alert 10 min before arrival</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:500;font-size:.83rem">Bus delay alerts</div><div style="font-size:.72rem;color:var(--text3)">When bus is running late</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:500;font-size:.83rem">Route cancellations</div><div style="font-size:.72rem;color:var(--text3)">School closures & snow days</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:500;font-size:.83rem">Carpool reminders</div><div style="font-size:.72rem;color:var(--text3)">1 hour before your drive day</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 0"><div><div style="font-weight:500;font-size:.83rem">Location Sharing</div><div style="font-size:.72rem;color:var(--text3)">Share location when driving</div></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ALERTS -->
+        <div>
+          <div class="card" style="margin-bottom:1.1rem">
+            <div class="flex-between mb-2"><h3 style="font-size:.875rem;font-weight:700">Recent Alerts</h3><button class="btn btn-ghost btn-sm" onclick="showToast('All alerts cleared')">Clear all</button></div>
+            <div style="display:flex;flex-direction:column;gap:.6rem">
+              <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r-sm);padding:.75rem .875rem">
+                <div style="font-size:.75rem;font-weight:700;color:var(--green);margin-bottom:.2rem">🚌 Bus Update</div>
+                <div style="font-size:.8rem">Route 12 is on time — arriving at Elm St at 7:42 AM</div>
+                <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">Today, 7:30 AM</div>
+              </div>
+              <div style="background:var(--yellow-bg);border:1px solid rgba(245,158,11,0.2);border-radius:var(--r-sm);padding:.75rem .875rem">
+                <div style="font-size:.75rem;font-weight:700;color:var(--yellow);margin-bottom:.2rem">⚠ Carpool Reminder</div>
+                <div style="font-size:.8rem">You're driving on Wednesday. Depart by 7:30 AM.</div>
+                <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">Yesterday, 6:00 PM</div>
+              </div>
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem .875rem">
+                <div style="font-size:.75rem;font-weight:700;color:var(--text2);margin-bottom:.2rem">👥 Group Update</div>
+                <div style="font-size:.8rem">Sarah M. confirmed she's driving Monday.</div>
+                <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">Yesterday, 3:45 PM</div>
+              </div>
+              <div style="background:var(--red-bg);border:1px solid rgba(239,68,68,0.2);border-radius:var(--r-sm);padding:.75rem .875rem">
+                <div style="font-size:.75rem;font-weight:700;color:var(--red);margin-bottom:.2rem">🔴 Route Change</div>
+                <div style="font-size:.8rem">Route 12 PM was delayed by 10 min last Friday due to traffic.</div>
+                <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">May 3, 3:18 PM</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3 style="font-size:.875rem;font-weight:700;margin-bottom:1rem">Quick Settings</h3>
+            <div style="display:flex;flex-direction:column;gap:.5rem">
+              <button class="btn btn-ghost btn-full btn-sm" onclick="showToast('Emergency contacts opened')">🆘 Emergency Contacts</button>
+              <button class="btn btn-ghost btn-full btn-sm" onclick="showToast('School list opened')">🏫 My Schools</button>
+              <button class="btn btn-ghost btn-full btn-sm" onclick="showToast('Data exported!')">📤 Export My Data</button>
+              <button class="btn btn-red btn-full btn-sm" onclick="showScreen('landing')">Sign Out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════
+  SCREEN 7 — GROUP DETAILS
+══════════════════════════════════════════════ -->
+<div id="group-details" class="screen with-sidebar">
+  <aside class="sidebar">
+    <div class="logo">School<span>Route</span></div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Main</div>
+      <a class="nav-item" onclick="showScreen('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="nav-item" onclick="showScreen('bus-route')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 14h4M7 12v5M17 12v5"/></svg>Bus Routes</a>
+      <a class="nav-item" onclick="showScreen('carpool')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Carpools</a>
+      <div class="sidebar-section" style="margin-top:.5rem">Manage</div>
+      <a class="nav-item active" onclick="showScreen('group-details')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Group Details</a>
+      <a class="nav-item" onclick="showScreen('create-group')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Create Group</a>
+    </nav>
+    <div class="sidebar-footer"><a class="nav-item" onclick="showScreen('profile-alerts')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a></div>
+  </aside>
+  <main class="main">
+    <div class="page-header">
+      <div><h2>Group Detail</h2><p>Johnson Carpool Group · 4 members</p></div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Invite link copied!')">+ Invite</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Settings opened')">Settings</button>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="grid-2" style="gap:1.25rem">
+        <div>
+          <!-- MEMBERS -->
+          <div class="card" style="margin-bottom:1.1rem">
+            <div class="flex-between mb-2"><h3 style="font-size:.875rem;font-weight:700">Members</h3><span class="badge badge-green">4 / 5 spots</span></div>
+            <div style="display:flex;flex-direction:column;gap:.6rem">
+              <div style="display:flex;align-items:center;gap:.875rem;padding:.75rem;background:var(--bg3);border-radius:var(--r-sm)">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;color:var(--green)">JP</div>
+                <div style="flex:1"><div style="font-weight:600;font-size:.875rem">Jordan Parker <span style="color:var(--green);font-size:.72rem">(you)</span></div><div style="font-size:.75rem;color:var(--text3)">1 child · Wednesdays</div></div>
+                <span class="badge badge-green">Admin</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:.875rem;padding:.75rem;background:var(--bg3);border-radius:var(--r-sm)">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;color:var(--blue)">SM</div>
+                <div style="flex:1"><div style="font-weight:600;font-size:.875rem">Sarah Martinez</div><div style="font-size:.75rem;color:var(--text3)">1 child · Mondays</div></div>
+                <span class="badge badge-blue">Member</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:.875rem;padding:.75rem;background:var(--bg3);border-radius:var(--r-sm)">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--yellow-bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;color:var(--yellow)">TK</div>
+                <div style="flex:1"><div style="font-weight:600;font-size:.875rem">Tom Kim</div><div style="font-size:.75rem;color:var(--text3)">2 children · Fridays</div></div>
+                <span class="badge badge-blue">Member</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:.875rem;padding:.75rem;background:var(--bg3);border-radius:var(--r-sm)">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--red-bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;color:var(--red)">LR</div>
+                <div style="flex:1"><div style="font-weight:600;font-size:.875rem">Lisa Rodriguez</div><div style="font-size:.75rem;color:var(--text3)">1 child · Thursdays</div></div>
+                <span class="badge badge-blue">Member</span>
+              </div>
+              <button class="btn btn-ghost btn-sm btn-full" onclick="showToast('Invite link copied!')">+ Invite 5th Member</button>
+            </div>
+          </div>
+
+          <!-- GROUP CHAT -->
+          <div class="card">
+            <div class="flex-between mb-2"><h3 style="font-size:.875rem;font-weight:700">Group Chat</h3><span style="font-size:.72rem;color:var(--text3)">3 unread</span></div>
+            <div style="background:var(--bg3);border-radius:var(--r-sm);padding:.875rem;display:flex;flex-direction:column;gap:.6rem;margin-bottom:.75rem">
+              <div><div style="font-size:.72rem;color:var(--green);font-weight:600;margin-bottom:.15rem">Sarah M.</div><div style="font-size:.8rem;background:var(--surface2);padding:.5rem .75rem;border-radius:0 var(--r-sm) var(--r-sm);display:inline-block">Running 5 min late Monday — kids can wait inside 👍</div></div>
+              <div style="text-align:right"><div style="font-size:.72rem;color:var(--text3);margin-bottom:.15rem">You</div><div style="font-size:.8rem;background:var(--green-bg);padding:.5rem .75rem;border-radius:var(--r-sm) 0 var(--r-sm) var(--r-sm);display:inline-block;color:var(--green)">No problem! See you then ✓</div></div>
+              <div><div style="font-size:.72rem;color:var(--yellow);font-weight:600;margin-bottom:.15rem">Tom K.</div><div style="font-size:.8rem;background:var(--surface2);padding:.5rem .75rem;border-radius:0 var(--r-sm) var(--r-sm);display:inline-block">Who's driving Friday this week?</div></div>
+            </div>
+            <div style="display:flex;gap:.5rem">
+              <input type="text" id="chat-input" placeholder="Message the group..." style="flex:1;padding:.55rem .875rem;border:1.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:.83rem;outline:none" onkeydown="if(event.key==='Enter')sendGroupMsg()">
+              <button class="btn btn-green btn-sm" onclick="sendGroupMsg()">Send</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCHEDULE + RULES -->
+        <div>
+          <div class="card" style="margin-bottom:1.1rem">
+            <div class="flex-between mb-2"><h3 style="font-size:.875rem;font-weight:700">Driving Schedule</h3><button class="btn btn-ghost btn-sm" onclick="showToast('Schedule edited!')">Edit</button></div>
+            <div style="background:var(--bg3);border-radius:var(--r-sm);overflow:hidden">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+                <div style="padding:.6rem .875rem;font-size:.72rem;font-weight:700;color:var(--text3);border-bottom:1px solid var(--border);border-right:1px solid var(--border)">DAY</div>
+                <div style="padding:.6rem .875rem;font-size:.72rem;font-weight:700;color:var(--text3);border-bottom:1px solid var(--border)">DRIVER</div>
+                <div style="padding:.6rem .875rem;font-size:.8rem;border-bottom:1px solid var(--border);border-right:1px solid var(--border)">Monday</div><div style="padding:.6rem .875rem;font-size:.8rem;border-bottom:1px solid var(--border);color:var(--blue)">Sarah M.</div>
+                <div style="padding:.6rem .875rem;font-size:.8rem;border-bottom:1px solid var(--border);border-right:1px solid var(--border);color:var(--text3)">Tuesday</div><div style="padding:.6rem .875rem;font-size:.8rem;border-bottom:1px solid var(--border);color:var(--text3)">Bus day</div>
+                <div style="padding:.6rem .875rem;font-size:.8rem;border-bottom:1px solid var(--border);border-right:1px solid var(--border)">Wednesday</div><div style="padding:.6rem .875rem;font-size:.8rem;border-bottom:1px solid var(--border);color:var(--green)">Jordan (you)</div>
+                <div style="padding:.6rem .875rem;font-size:.8rem;border-bottom:1px solid var(--border);border-right:1px solid var(--border)">Thursday</div><div style="padding:.6rem .875rem;font-size:.8rem;border-bottom:1px solid var(--border);color:var(--red)">Lisa R.</div>
+                <div style="padding:.6rem .875rem;font-size:.8rem;border-right:1px solid var(--border)">Friday</div><div style="padding:.6rem .875rem;font-size:.8rem;color:var(--yellow)">Tom K.</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3 style="font-size:.875rem;font-weight:700;margin-bottom:.875rem">Group Rules</h3>
+            <div style="display:flex;flex-direction:column;gap:.5rem">
+              <div style="font-size:.8rem;display:flex;gap:.5rem"><span style="color:var(--green)">•</span>Depart by <strong>7:30 AM</strong> sharp</div>
+              <div style="font-size:.8rem;display:flex;gap:.5rem"><span style="color:var(--green)">•</span>Car seats provided by each parent</div>
+              <div style="font-size:.8rem;display:flex;gap:.5rem"><span style="color:var(--green)">•</span>24h notice required for cancellations</div>
+              <div style="font-size:.8rem;display:flex;gap:.5rem"><span style="color:var(--green)">•</span>Message the group if running late</div>
+            </div>
+            <div style="margin-top:1rem;display:flex;gap:.5rem">
+              <button class="btn btn-outline btn-sm" style="flex:1" onclick="showToast('Rules edited!')">Edit Rules</button>
+              <button class="btn btn-red btn-sm" onclick="showToast('Left group')">Leave Group</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════
+  SCREEN 8 — CREATE GROUP
+══════════════════════════════════════════════ -->
+<div id="create-group" class="screen with-sidebar">
+  <aside class="sidebar">
+    <div class="logo">School<span>Route</span></div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Main</div>
+      <a class="nav-item" onclick="showScreen('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="nav-item" onclick="showScreen('bus-route')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 14h4M7 12v5M17 12v5"/></svg>Bus Routes</a>
+      <a class="nav-item" onclick="showScreen('carpool')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Carpools</a>
+      <div class="sidebar-section" style="margin-top:.5rem">Manage</div>
+      <a class="nav-item" onclick="showScreen('group-details')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Group Details</a>
+      <a class="nav-item active" onclick="showScreen('create-group')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Create Group</a>
+    </nav>
+    <div class="sidebar-footer"><a class="nav-item" onclick="showScreen('profile-alerts')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a></div>
+  </aside>
+  <main class="main">
+    <div class="page-header"><div><h2>Create Group</h2><p>Start a new carpool group</p></div></div>
+    <div class="page-body">
+      <div class="grid-2" style="gap:1.25rem">
+        <div>
+          <div class="card" style="margin-bottom:1.1rem">
+            <h3 style="font-size:.875rem;font-weight:700;margin-bottom:1rem">Group Details</h3>
+            <div class="form-group"><label>Group Name</label><input type="text" placeholder="e.g. Oak Street Carpool" id="grp-name"></div>
+            <div class="form-group"><label>School</label><input type="text" placeholder="Lincoln Middle School" value="Lincoln Middle School"></div>
+            <div class="form-group"><label>Meeting Point / Pickup Area</label><input type="text" placeholder="e.g. Oak Street & 5th Ave"></div>
+            <div class="form-group"><label>Carpool Days</label>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem">
+                <span class="badge badge-green" style="cursor:pointer;padding:.35rem .7rem" onclick="toggleDay(this)">Mon</span>
+                <span class="badge badge-gray" style="cursor:pointer;padding:.35rem .7rem" onclick="toggleDay(this)">Tue</span>
+                <span class="badge badge-green" style="cursor:pointer;padding:.35rem .7rem" onclick="toggleDay(this)">Wed</span>
+                <span class="badge badge-gray" style="cursor:pointer;padding:.35rem .7rem" onclick="toggleDay(this)">Thu</span>
+                <span class="badge badge-green" style="cursor:pointer;padding:.35rem .7rem" onclick="toggleDay(this)">Fri</span>
+              </div>
+            </div>
+            <div class="grid-2" style="gap:.75rem">
+              <div class="form-group"><label>Depart Time (AM)</label><input type="time" value="07:30"></div>
+              <div class="form-group"><label>Depart Time (PM)</label><input type="time" value="15:30"></div>
+            </div>
+            <div class="form-group"><label>Max Members</label><select><option>3 families</option><option>4 families</option><option selected>5 families</option><option>6 families</option></select></div>
+            <div class="form-group"><label>Group Type</label>
+              <div style="display:flex;gap:.5rem;margin-top:.5rem">
+                <div style="flex:1;padding:.75rem;border:2px solid var(--green);border-radius:var(--r-sm);background:var(--green-bg);cursor:pointer;text-align:center">
+                  <div style="font-size:1.25rem">🔒</div><div style="font-size:.78rem;font-weight:700;color:var(--green);margin-top:.25rem">Private</div><div style="font-size:.7rem;color:var(--text2)">Invite only</div>
+                </div>
+                <div style="flex:1;padding:.75rem;border:2px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;text-align:center" onclick="showToast('Public group selected')">
+                  <div style="font-size:1.25rem">🌍</div><div style="font-size:.78rem;font-weight:700;margin-top:.25rem">Public</div><div style="font-size:.7rem;color:var(--text2)">Anyone can join</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:1.1rem">
+            <h3 style="font-size:.875rem;font-weight:700;margin-bottom:1rem">Invite Members</h3>
+            <div class="form-group"><label>Invite by Email</label>
+              <div style="display:flex;gap:.5rem">
+                <input type="email" placeholder="parent@school.edu" id="invite-email" style="flex:1;padding:.6rem .875rem;border:1.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:.83rem;outline:none">
+                <button class="btn btn-outline btn-sm" onclick="addInvite()">Add</button>
+              </div>
+            </div>
+            <div id="invite-list" style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem">
+              <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border-radius:var(--r-sm);padding:.6rem .875rem">
+                <div style="display:flex;align-items:center;gap:.6rem"><div class="member-av" style="background:var(--blue-bg);color:var(--blue);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700">SM</div><span style="font-size:.82rem">sarah.m@lincoln.edu</span></div>
+                <span class="badge badge-yellow">Pending</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:1.1rem">
+            <h3 style="font-size:.875rem;font-weight:700;margin-bottom:.875rem">Group Rules (optional)</h3>
+            <div class="form-group" style="margin-bottom:.75rem">
+              <textarea placeholder="e.g. Depart by 7:30 AM. 24h notice for cancellations..." rows="4" style="resize:none"></textarea>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:.4rem">
+              <label style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;cursor:pointer"><input type="checkbox" checked style="width:auto"> Require admin approval for new members</label>
+              <label style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;cursor:pointer"><input type="checkbox" checked style="width:auto"> Auto-rotate driving schedule</label>
+              <label style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;cursor:pointer"><input type="checkbox" style="width:auto"> Allow members to swap drive days freely</label>
+            </div>
+          </div>
+
+          <button class="btn btn-green btn-full btn-lg" onclick="createGroup()">Create Group →</button>
+          <button class="btn btn-ghost btn-full btn-sm" style="margin-top:.5rem" onclick="showScreen('carpool')">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+let currentUser = {name:'Jordan', last:'Parker'};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if(el){el.classList.add('active');window.scrollTo(0,0);}
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-signin').classList.toggle('active', tab==='signin');
+  document.getElementById('tab-signup').classList.toggle('active', tab==='signup');
+  document.getElementById('form-signin').style.display = tab==='signin' ? '' : 'none';
+  document.getElementById('form-signup').style.display = tab==='signup' ? '' : 'none';
+}
+
+function doLogin() {
+  showScreen('dashboard');
+  showToast('Welcome back, Jordan! 👋');
+}
+
+function doSignup() {
+  const fn = document.getElementById('su-first');
+  const ln = document.getElementById('su-last');
+  const name = fn?.value || 'Jordan';
+  const last = ln?.value || 'Parker';
+  currentUser = {name, last};
+  document.getElementById('sidebar-name').textContent = name + ' ' + last;
+  document.getElementById('dash-greeting').textContent = `Good ${tod()}, ${name} 👋`;
+  document.getElementById('profile-name-disp').textContent = name + ' ' + last;
+  document.getElementById('profile-av').textContent = name[0].toUpperCase() + last[0].toUpperCase();
+  showScreen('dashboard');
+  showToast(`Welcome to SchoolRoute, ${name}! 🚌`);
+}
+
+function tod() {
+  const h=new Date().getHours();
+  return h<12?'morning':h<17?'afternoon':'evening';
+}
+
+function updateName(v) {
+  document.getElementById('profile-name-disp').textContent = v||'User';
+  if(v) document.getElementById('profile-av').textContent = v.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+}
+
+function sendGroupMsg() {
+  const inp = document.getElementById('chat-input');
+  const msg = inp.value.trim();
+  if(!msg) return;
+  showToast('Message sent to group!');
+  inp.value = '';
+}
+
+function toggleDay(el) {
+  if(el.classList.contains('badge-green')) {
+    el.classList.remove('badge-green');
+    el.classList.add('badge-gray');
+  } else {
+    el.classList.remove('badge-gray');
+    el.classList.add('badge-green');
+  }
+}
+
+function addInvite() {
+  const inp = document.getElementById('invite-email');
+  const email = inp.value.trim();
+  if(!email) return;
+  const initials = email.substring(0,2).toUpperCase();
+  const colors = ['var(--blue-bg)/var(--blue)','var(--yellow-bg)/var(--yellow)','var(--red-bg)/var(--red)'];
+  const c = colors[Math.floor(Math.random()*colors.length)].split('/');
+  const row = document.createElement('div');
+  row.style.cssText='display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border-radius:var(--r-sm);padding:.6rem .875rem';
+  row.innerHTML=`<div style="display:flex;align-items:center;gap:.6rem"><div style="width:28px;height:28px;border-radius:50%;background:${c[0]};color:${c[1]};display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700">${initials}</div><span style="font-size:.82rem">${email}</span></div><span class="badge badge-yellow">Pending</span>`;
+  document.getElementById('invite-list').appendChild(row);
+  inp.value='';
+  showToast(`Invite sent to ${email}!`);
+}
+
+function createGroup() {
+  const name = document.getElementById('grp-name')?.value || 'New Carpool Group';
+  showScreen('group-details');
+  showToast(`"${name || 'New Group'}" created! 🎉`);
+}
+
+// Init greeting
+document.getElementById('dash-greeting').textContent = `Good ${tod()}, Jordan 👋`;
+</script>
+</body>
+</html>
