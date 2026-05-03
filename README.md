@@ -4,6 +4,8 @@
 
 ---
 
+**[▶ View Live Prototype](https://yasir164.github.io/mindbridge-ux-case-study/mindbridge.html)**
+
 ## Overview
 
 SchoolRoute is a mobile app, responsive website, and fully coded interactive prototype helping parents and students access school bus routes and schedules in one place. It enables trusted carpooling groups within school communities with real-time notifications for delays and changes.
