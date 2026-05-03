@@ -4,7 +4,7 @@
 
 ---
 
-**[▶ View Live Prototype](https://yasir164.github.io/mindbridge-ux-case-study/mindbridge.html)**
+**[▶ View Live Prototype](https://yasir164.github.io/SchoolRoute-ux-case-study/schoolroute.html)**
 
 ## Overview
 
